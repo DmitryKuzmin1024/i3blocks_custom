@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+#Device name
+DN=$(pactl info | awk 'NR==13 {print $3}')
+
+#Description
+DESCRIPTION=$(pactl list sinks | awk -v name=$DN '$2 ~ name {print;getline;print;}' | awk 'NR==2 {$1=""; print $0}')
+
+#Current PCM
+PCM=$(pactl list short sinks | awk '$7 ~ /RUNNING/ {print $6}')
+
+#List size
+LIST_SIZE=$(pactl list short sinks | awk 'END{print NR}')
+#Number of current string in list of devices
+STRING_NUMBER=$(pactl list short sinks | awk -v name=$DN '$2 ~ name {print NR}')
+#Index of device in sring+1
+INDEX_DEVICE_SRING_PLUS=$(pactl list short sinks | awk -v sn=$STRING_NUMBER 'NR==sn+1 {print $1}')
+#Index of device in sring-1
+INDEX_DEVICE_SRING_MINUS=$(pactl list short sinks | awk -v sn=$STRING_NUMBER 'NR==sn-1 {print $1}')
+
+#Output
+echo $DESCRIPTION $PCM
+
+#Infinite scroll
+if [ "$STRING_NUMBER" == "1" ]
+then
+	#Last device index in list	
+	INDEX_DEVICE_SRING_MINUS=$(pactl list short sinks | awk -v size=$LIST_SIZE 'NR==size {print $1}')
+elif [ "$STRING_NUMBER" == "$LIST_SIZE" ]
+then
+	#First device index in list
+	INDEX_DEVICE_SRING_PLUS=$(pactl list short sinks | awk 'NR==1 {print $1}')
+fi
+
+#Scroll
+case $BLOCK_BUTTON in
+  4) pacmd set-default-sink $INDEX_DEVICE_SRING_PLUS ;; # Scroll up
+  5) pacmd set-default-sink $INDEX_DEVICE_SRING_MINUS ;; # Scroll down
+esac
