@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+#Window title
+WT=$(xdotool getactivewindow getwindowname)
+#String lengh
+SL=${#WT}
+#Current leng
+CL=55
+#Cut sting
+CS=$(echo $WT | cut -c1-$CL | iconv -c)
+
+if [ $SL -le $CL ]
+then
+        echo $WT
+else
+        echo $CS...
+fi
+
+case $BLOCK_BUTTON in
+  3) xdotool getactivewindow windowclose ;;
+  4) i3-msg focus left ;;
+  5) i3-msg focus right ;;
+esac
