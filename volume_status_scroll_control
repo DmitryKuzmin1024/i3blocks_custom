@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+vol="$(amixer -D pulse sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }')"
+status="$(amixer -D pulse sget Master | grep 'Left:' | awk -F'[][]' '{ print $4 }')"
+
+if [ "$status" == "off" ] 
+then 
+	echo "MUTE"
+fi
+
+echo "$vol"
+
+awk -v stat=$status '
+    BEGIN {
+    	if ( stat == "off" ) {
+            print "#FFA000";
+        }
+    }
+'
+
+case $BLOCK_BUTTON in
+  3) amixer -D pulse set Master toggle ;;  # right click, mute/unmute
+  4) amixer -D pulse set Master 5%+ unmute ;; # scroll up
+  5) amixer -D pulse set Master 5%- unmute ;; # scroll down
+esac
